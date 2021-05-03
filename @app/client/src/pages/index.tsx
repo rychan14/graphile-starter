@@ -6,7 +6,7 @@ import { NextPage } from "next";
 
 const TaskList = () => {
   const { data, loading, error } = useTasksQuery();
-  const taskData = loading ? [] : data.tasks.nodes
+  const taskData = loading ? [] : data?.tasks.nodes
   const columns = [
     {
       title: 'Title',
