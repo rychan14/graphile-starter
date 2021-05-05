@@ -33,13 +33,13 @@ const initialState = [
     value: "",
   },
   {
-    status: "status",
+    name: "status",
     value: Status.ToDo,
   },
 ];
 
 const Home: NextPage = () => {
-  const formRef = useRef();
+  const formRef = useRef<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   // use an update function to manipulate cache to update TaskList
   // instead of re-doing the fetch query to get resulting data
@@ -74,7 +74,7 @@ const Home: NextPage = () => {
     try {
       await createTask({ variables: transformedFields, update });
       setIsModalOpen(false);
-      formRef.current.resetFields();
+      formRef?.current?.resetFields();
     } catch (e) {
       console.error(e);
     }
@@ -92,7 +92,7 @@ const Home: NextPage = () => {
       <Button
         data-cy="create-task-button"
         type="primary"
-        onClick={setIsModalOpen}
+        onClick={() => setIsModalOpen(true)}
       >
         Create Task
       </Button>
@@ -101,9 +101,10 @@ const Home: NextPage = () => {
         visible={isModalOpen}
         onCancel={handleCancel}
         onOk={handleOk}
-        okButtonProps={{ "data-cy": "create-task-modal-ok" }}
+        // use className here because antd okButtonProps types does not except 'data-cy'
+        okButtonProps={{ className: "create-task-modal-ok" }}
       >
-        <Form ref={formRef} onFieldsChange={handleChange} fields={[fields]}>
+        <Form ref={formRef} onFieldsChange={handleChange} fields={initialState}>
           <Form.Item label="Title" name="title">
             <Input data-cy="create-task-modal-title" />
           </Form.Item>

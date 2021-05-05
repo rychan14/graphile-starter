@@ -12,7 +12,7 @@ context("Task List", () => {
     cy.getCy("create-task-modal-description").type("Task 1 description");
     cy.getCy("create-task-modal-status").click();
     cy.getCy("create-task-modal-status-ToDo").click();
-    cy.getCy("create-task-modal-ok").click();
+    cy.get(".create-task-modal-ok").click();
 
     // Assertions
     cy.url().should("equal", Cypress.env("ROOT_URL") + "/");
