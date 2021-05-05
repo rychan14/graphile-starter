@@ -145,7 +145,7 @@ export const TaskList = ({
 }: {
   updateTask: (...args: any[]) => void,
   deleteTask: (...args: any[]) => void,
-  update: () => void
+  update: (...args: any[]) => void
 }) => {
   const query = useTasksQuery()
   const taskData = !query?.loading && query

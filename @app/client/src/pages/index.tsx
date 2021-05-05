@@ -1,12 +1,14 @@
 import { Button, Table, Modal, Form, Input, Select } from "antd";
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
-import { Status, useDeleteTaskMutation, useTasksQuery, useUpdateTaskMutation, useCreateTaskMutation, TasksDocument } from "@app/graphql";
+import { Task, DeleteTaskPayload, CreateTaskPayload, Status, useDeleteTaskMutation, useTasksQuery, useUpdateTaskMutation, useCreateTaskMutation, TasksDocument } from "@app/graphql";
 import { TaskList } from '@app/components';
 import { NextPage } from "next";
 
+
 const STATUSES = Object.keys(Status)
 
-const transformFields = (fields) => (
+// using any to be agnostic when transforming the fields
+const transformFields = (fields: any[]) => (
   fields.reduce((accum, field) => ({
     ...accum,
     [field.name?.[0]]: field.value
@@ -33,11 +35,11 @@ const Home: NextPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   // use an update function to manipulate cache to update TaskList
   // instead of re-doing the fetch query to get resulting data
-  const update = ( cache, { data }) => {
+  const update = ( cache: any, { data }: DeleteTaskPayload | CreateTaskPayload) => {
     const deleteTask = data?.deleteTask
     const cachedTasks = cache.readQuery({ query: TasksDocument })
     const updatedTaskList = deleteTask
-      ? cachedTasks.tasks.nodes.filter(node => node.id !== deleteTask?.task?.id)
+      ? cachedTasks.tasks.nodes.filter((node: Task) => node.id !== deleteTask?.task?.id)
       : [ ...cachedTasks.tasks.nodes, data?.createTask.task ]
     if (cachedTasks && updatedTaskList) {
       cache.writeQuery({
@@ -69,7 +71,7 @@ const Home: NextPage = () => {
     }
   }
 
-  const handleChange = (_, allFields) => setFields(allFields)
+  const handleChange = (_, allFields: any) => setFields(allFields)
 
   return (
     <>
