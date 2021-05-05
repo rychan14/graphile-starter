@@ -1,10 +1,19 @@
-import { Table, Form } from "antd";
-import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from "react";
-import { useTasksQuery, Status, Task, TasksQuery } from "@app/graphql";
-import EditableCellDropdown from './EditableCellDropdown';
-import EditableCellInput from './EditableCellInput';
+import { Status, Task, useTasksQuery } from "@app/graphql";
+import { Form, Table } from "antd";
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
-type RecordWithOptionalFields = Pick<Task, 'status' | 'title' | 'description'> & Partial<Task>
+import EditableCellDropdown from "./EditableCellDropdown";
+import EditableCellInput from "./EditableCellInput";
+
+type RecordWithOptionalFields = Pick<Task, "status" | "title" | "description"> &
+  Partial<Task>;
 
 interface EditableContextProps {
   setFieldsValue: (...args: any[]) => void;
@@ -12,8 +21,8 @@ interface EditableContextProps {
 }
 const EditableContext = createContext<EditableContextProps>({
   setFieldsValue() {},
-  getFieldsValue: () => ({ status: Status.ToDo,  title: "", description: "" }),
-})
+  getFieldsValue: () => ({ status: Status.ToDo, title: "", description: "" }),
+});
 
 const EditableCell = ({
   children,
@@ -23,40 +32,40 @@ const EditableCell = ({
   record,
   updateTask,
 }: {
-  children: ReactNode,
-  dataIndex: string,
-  dropdown: boolean,
-  editable: boolean,
-  record: RecordWithOptionalFields,
-  updateTask: (...args: any[]) => void
+  children: ReactNode;
+  dataIndex: string;
+  dropdown: boolean;
+  editable: boolean;
+  record: RecordWithOptionalFields;
+  updateTask: (...args: any[]) => void;
 }) => {
-  const [editing, setEditing] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
-  const form = useContext(EditableContext)
+  const [editing, setEditing] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const form = useContext(EditableContext);
 
   // focus input when the editing is toggled on
   useEffect(() => {
     if (editing && inputRef.current) {
-      inputRef.current.focus()
+      inputRef.current.focus();
     }
-  }, [editing])
+  }, [editing]);
 
   const toggleEditingMode = () => {
     // if not in edit mode, set the value of the input to match cache
-    if (!editing ) {
+    if (!editing) {
       form.setFieldsValue({
-        [dataIndex]: record[dataIndex]
-      })
+        [dataIndex]: record[dataIndex],
+      });
     }
 
     // enable editing
-    setEditing(!editing)
-  }
+    setEditing(!editing);
+  };
 
   const saveEdits = async () => {
     // save changes, toggle edit off
-    setEditing(!editing)
-    const { status, title, description } = form.getFieldsValue(true)
+    setEditing(!editing);
+    const { status, title, description } = form.getFieldsValue(true);
     try {
       await updateTask({
         variables: {
@@ -65,61 +74,68 @@ const EditableCell = ({
         },
       });
     } catch (e) {
-      console.error(e)
+      console.error(e);
     }
-  }
+  };
 
   const inputProps = {
     ref: inputRef,
     onBlur: saveEdits,
-  }
+  };
 
   const dropdownProps = {
     ref: inputRef,
     onSelect: saveEdits,
-  }
+  };
 
   return (
     <td>
-      {dropdown && editable
-        ? <EditableCellDropdown dataIndex={dataIndex} dropdownProps={dropdownProps} />
-        : !dropdown && editable && editing
-          ? <EditableCellInput dataIndex={dataIndex} inputProps={inputProps} />
-          : editable && !editing
-            ? <span className="editable-input-cell" onClick={toggleEditingMode}>
-                {children}
-              </span>
-            : children
-      }
+      {dropdown && editable ? (
+        <EditableCellDropdown
+          dataIndex={dataIndex}
+          dropdownProps={dropdownProps}
+        />
+      ) : !dropdown && editable && editing ? (
+        <EditableCellInput dataIndex={dataIndex} inputProps={inputProps} />
+      ) : editable && !editing ? (
+        <span className="editable-input-cell" onClick={toggleEditingMode}>
+          {children}
+        </span>
+      ) : (
+        children
+      )}
     </td>
-  )
-}
-
+  );
+};
 
 const EditableRow = ({
   className,
   record,
   ...props
 }: {
-  className: string,
-  record: RecordWithOptionalFields
+  className: string;
+  record: RecordWithOptionalFields;
 }) => {
-  const [form] = Form.useForm()
+  const [form] = Form.useForm();
   return (
     <Form form={form} component={false} initialValues={record}>
       <EditableContext.Provider value={form}>
-        <tr {...props} className={`${className} table-row`} />
+        <tr
+          {...props}
+          data-cy="task-list-row"
+          className={`${className} table-row`}
+        />
       </EditableContext.Provider>
     </Form>
-  )
-}
+  );
+};
 
 const transformColumn = (col: {
-  editable?: boolean,
-  dropdown?: boolean,
-  dataIndex: string,
-  title: string,
-  updateTask?: () => any
+  editable?: boolean;
+  dropdown?: boolean;
+  dataIndex: string;
+  title: string;
+  updateTask?: () => any;
 }) => {
   if (!col.editable) {
     return col;
@@ -136,81 +152,90 @@ const transformColumn = (col: {
       updateTask: col.updateTask,
     }),
   };
-}
+};
 
 export const TaskList = ({
   updateTask,
   deleteTask,
-  update
+  update,
 }: {
-  updateTask: (...args: any[]) => void,
-  deleteTask: (...args: any[]) => void,
-  update: (...args: any[]) => void
+  updateTask: (...args: any[]) => void;
+  deleteTask: (...args: any[]) => void;
+  update: (...args: any[]) => void;
 }) => {
-  const query = useTasksQuery()
-  const taskData = !query?.loading && query
-    ? query?.data?.tasks?.nodes.map((node: Task)  => {
-      const handleDelete = async () => {
-        try {
-          await deleteTask({ variables: { id: node.id }, update })
-        } catch (error) {
-          console.error(error)
-        }
-      }
+  const query = useTasksQuery();
+  const taskData =
+    !query?.loading && query
+      ? query?.data?.tasks?.nodes.map((node: Task) => {
+          const handleDelete = async () => {
+            try {
+              await deleteTask({ variables: { id: node.id }, update });
+            } catch (error) {
+              console.error(error);
+            }
+          };
 
-      return ({
-        ...node,
-        // add the "Remove action to the row"
-        actions: <a onClick={handleDelete}>Remove</a>
-      })
-    })
-    : []
+          return {
+            ...node,
+            // add the "Remove action to the row"
+            actions: (
+              <a onClick={handleDelete} data-cy="task-list-remove">
+                Remove
+              </a>
+            ),
+          };
+        })
+      : [];
 
   const columns = [
     {
-      dataIndex: 'title',
+      dataIndex: "title",
       editable: true,
-      key: 'title',
-      title: 'Title',
+      key: "title",
+      title: "Title",
       updateTask,
-      width: '25%',
+      width: "25%",
     },
     {
-      dataIndex: 'description',
+      dataIndex: "description",
       editable: true,
-      key: 'description',
-      title: 'Description',
+      key: "description",
+      title: "Description",
       updateTask,
-      width: '25%',
+      width: "25%",
     },
     {
-      dataIndex: 'status',
+      dataIndex: "status",
       editable: true,
       dropdown: true,
-      key: 'status',
-      title: 'Status',
+      key: "status",
+      title: "Status",
       updateTask,
-      width: '25%',
+      width: "25%",
     },
     {
-      title: 'Actions',
-      dataIndex: 'actions',
+      title: "Actions",
+      dataIndex: "actions",
       deleteTask,
-      key: 'actions',
-    }
-  ]
+      key: "actions",
+    },
+  ];
   const components = {
     body: {
       row: EditableRow,
-      cell: EditableCell
-    }
-  }
+      cell: EditableCell,
+    },
+  };
   return (
     <>
       <Table
         // use id because Antd type system doesn't allow passing just the record
         // needs to have an attribute that overlaps with HTMLAttributes<HTMLElement> type
-        onRow={(record: RecordWithOptionalFields) => ({ record, id: record.id })}
+        onRow={(record: RecordWithOptionalFields) => ({
+          record,
+          id: record.id,
+        })}
+        data-cy="task-list-table"
         bordered
         columns={columns.map(transformColumn)}
         components={components}
@@ -219,5 +244,5 @@ export const TaskList = ({
         rowKey="id"
       />
     </>
-  )
-}
+  );
+};

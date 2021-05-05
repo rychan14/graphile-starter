@@ -5,14 +5,14 @@ const EditableCellInput = ({
   dataIndex,
   inputProps,
 }: {
-  dataIndex: string,
+  dataIndex: string;
   inputProps: {
-    onBlur: () => void,
-  }
+    onBlur: () => void;
+  };
 }) => (
   <Form.Item name={dataIndex} className="editable-form-item">
     <Input {...inputProps} />
   </Form.Item>
 );
 
-export default EditableCellInput
+export default EditableCellInput;

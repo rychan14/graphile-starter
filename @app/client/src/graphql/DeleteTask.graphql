@@ -1,11 +1,5 @@
-mutation DeleteTask(
-  $id: UUID!,
-) {
-  deleteTask(
-    input: {
-      id: $id,
-    }
-  ) {
+mutation DeleteTask($id: UUID!) {
+  deleteTask(input: { id: $id }) {
     clientMutationId
     task {
       id

@@ -1,13 +1,5 @@
-mutation UpdateTask(
-  $id: UUID!,
-  $patch: TaskPatch!
-) {
-  updateTask(
-    input: {
-      id: $id,
-      patch: $patch
-    }
-  ) {
+mutation UpdateTask($id: UUID!, $patch: TaskPatch!) {
+  updateTask(input: { id: $id, patch: $patch }) {
     clientMutationId
     task {
       id

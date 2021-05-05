@@ -11,6 +11,6 @@ export * from "./SharedLayout";
 export * from "./SocialLoginOptions";
 export * from "./SpinPadded";
 export * from "./StandardWidth";
+export * from "./TaskList";
 export * from "./Text";
 export * from "./Warn";
-export * from "./TaskList";
