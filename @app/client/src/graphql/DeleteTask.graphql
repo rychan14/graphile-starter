@@ -1,0 +1,20 @@
+mutation DeleteTask(
+  $id: UUID!,
+) {
+  deleteTask(
+    input: {
+      id: $id,
+    }
+  ) {
+    clientMutationId
+    task {
+      id
+      createdAt
+      description
+      id
+      status
+      title
+      updatedAt
+    }
+  }
+}

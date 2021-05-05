@@ -8,3 +8,23 @@ a.ant-btn-primary {
 a.ant-btn-primary:hover {
   color: #f0faff;
 }
+
+.table-row {
+  &:hover {
+    .editable-input-cell {
+      border: 1px solid #d9d9d9;
+      border-radius: 4px;
+      padding: 4px 9px;
+    }
+  }
+
+  .editable-form-item {
+    margin: 0;
+  }
+
+  .editable-input-cell {
+    cursor: pointer;
+    display: flex;
+    padding: 5px 10px;
+  }
+}

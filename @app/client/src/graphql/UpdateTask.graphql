@@ -1,0 +1,22 @@
+mutation UpdateTask(
+  $id: UUID!,
+  $patch: TaskPatch!
+) {
+  updateTask(
+    input: {
+      id: $id,
+      patch: $patch
+    }
+  ) {
+    clientMutationId
+    task {
+      id
+      createdAt
+      description
+      id
+      status
+      title
+      updatedAt
+    }
+  }
+}

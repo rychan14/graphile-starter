@@ -1,60 +1,10 @@
 import { Button, Table, Modal, Form, Input, Select } from "antd";
-import React, { useRef, useState } from "react";
-import { useTasksQuery, useCreateTaskMutation, TasksDocument } from "@app/graphql";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import { Status, useDeleteTaskMutation, useTasksQuery, useUpdateTaskMutation, useCreateTaskMutation, TasksDocument } from "@app/graphql";
+import { TaskList } from '@app/components';
 import { NextPage } from "next";
 
-
-const TaskList = () => {
-  const { data, loading, error } = useTasksQuery();
-  const taskData = loading ? [] : data?.tasks.nodes
-  const columns = [
-    {
-      title: 'Title',
-      dataIndex: 'title',
-      key: 'title',
-    },
-    {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
-    },
-    {
-      title: 'Created',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-    },
-    {
-      title: 'Updated',
-      dataIndex: 'updatedAt',
-      key: 'updatedAt',
-    },
-
-    {
-      title: 'Id',
-      dataIndex: 'id',
-      key: 'id',
-    },
-  ]
-  return (
-    <Table
-      columns={columns}
-      dataSource={taskData}
-      pagination={false}
-      rowKey="id"
-    />
-  )
-}
-
-interface FieldData {
-  title: string;
-  description: string;
-  status: 'TO_DO' | 'IN_PROGRESS' | 'DONE'
-}
+const STATUSES = Object.keys(Status)
 
 const transformFields = (fields) => (
   fields.reduce((accum, field) => ({
@@ -74,7 +24,7 @@ const initialState = [
   },
   {
     status: 'status',
-    value: null
+    value: Status.ToDo
   }
 ]
 
@@ -84,15 +34,17 @@ const Home: NextPage = () => {
   // use an update function to manipulate cache to update TaskList
   // instead of re-doing the fetch query to get resulting data
   const update = ( cache, { data }) => {
-    const newTask = data?.createTask.task
+    const deleteTask = data?.deleteTask
     const cachedTasks = cache.readQuery({ query: TasksDocument })
-    const newTaskList = [ ...cachedTasks.tasks.nodes, newTask ]
-    if (newTask && cachedTasks) {
+    const updatedTaskList = deleteTask
+      ? cachedTasks.tasks.nodes.filter(node => node.id !== deleteTask?.task?.id)
+      : [ ...cachedTasks.tasks.nodes, data?.createTask.task ]
+    if (cachedTasks && updatedTaskList) {
       cache.writeQuery({
         query: TasksDocument,
         data: {
           tasks: {
-            nodes: newTaskList,
+            nodes: updatedTaskList,
             __typename: "TasksConnection"
           }
         }
@@ -101,6 +53,8 @@ const Home: NextPage = () => {
 
   }
   const [createTask] = useCreateTaskMutation()
+  const [updateTask] = useUpdateTaskMutation()
+  const [deleteTask] = useDeleteTaskMutation()
   const [fields, setFields] = useState(initialState)
   const handleCancel = () => setIsModalOpen(false)
   const handleOk = async () => {
@@ -119,7 +73,7 @@ const Home: NextPage = () => {
 
   return (
     <>
-      <TaskList />
+      <TaskList updateTask={updateTask} deleteTask={deleteTask} update={update} />
       <Button type="primary" onClick={setIsModalOpen}>Create Task</Button>
       <Modal visible={isModalOpen} onCancel={handleCancel} onOk={handleOk}>
         <Form ref={formRef} onFieldsChange={handleChange} fields={[fields]}>
@@ -127,9 +81,7 @@ const Home: NextPage = () => {
           <Form.Item label="Description" name="description"><Input /></Form.Item>
           <Form.Item label="Status" name="status">
             <Select placeholder="Set the status of your task" allowClear>
-              <Select.Option value="TO_DO">To Do</Select.Option>
-              <Select.Option value="IN_PROGRESS">In Progress</Select.Option>
-              <Select.Option value="DONE">Done</Select.Option>
+              {STATUSES.map(status => <Select.Option key={status} value={Status[status]}>{status}</Select.Option>)}
             </Select>
           </Form.Item>
         </Form>
